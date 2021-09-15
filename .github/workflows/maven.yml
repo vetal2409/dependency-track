@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DOCKER_APISERVER_REPO: dependencytrack/apiserver
-      DOCKER_BUNDLED_REPO: dependencytrack/bundled
-      DOCKER_TAG: snapshot
-
+      DOCKER_APISERVER_REPO: stylet/dtrack_api
+#      DOCKER_APISERVER_REPO: dependencytrack/apiserver
+#      DOCKER_BUNDLED_REPO: dependencytrack/bundled
+#      DOCKER_TAG: snapshot
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -70,7 +70,7 @@ jobs:
       run: docker login -u "${HUB_USERNAME}" -p "${HUB_ACCESSS_TOKEN}"
 
     - name: Building Docker API Server container
-      if: github.ref == 'refs/heads/master'
+#      if: github.ref == 'refs/heads/master'
       run: |-
         docker build -f src/main/docker/Dockerfile \
           --build-arg COMMIT_SHA=${GITHUB_SHA} \
