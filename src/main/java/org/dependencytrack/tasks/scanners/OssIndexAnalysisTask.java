@@ -104,11 +104,11 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                 }
             }
             final OssIndexAnalysisEvent event = (OssIndexAnalysisEvent)e;
-            LOGGER.info("Starting Sonatype OSS Index analysis task");
             if (event.getComponents().size() > 0) {
+                LOGGER.info("Starting Sonatype OSS Index analysis task for " + event.getComponents().size() + " components.");
                 analyze(event.getComponents());
+                LOGGER.info("Sonatype OSS Index analysis complete for " + event.getComponents().size() + " components.");
             }
-            LOGGER.info("Sonatype OSS Index analysis complete");
         }
     }
 
@@ -169,7 +169,9 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                 } catch (UnirestException e) {
                     handleRequestException(LOGGER, e);
                 }
-                LOGGER.info("Analyzing " + coordinates.size() + " component(s)");
+                LOGGER.info("Analyzing " + coordinates.size()
+                        + ", page " + paginatedComponents.getCurrentPage() + "/" + paginatedComponents.getTotalPages()
+                        + ", component(s)");
             }
             paginatedComponents.nextPage();
         }

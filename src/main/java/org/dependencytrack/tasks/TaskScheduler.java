@@ -19,10 +19,13 @@
 package org.dependencytrack.tasks;
 
 import alpine.event.LdapSyncEvent;
+import alpine.event.framework.ChainableEvent;
 import alpine.event.framework.Event;
+import alpine.event.framework.EventService;
 import alpine.model.ConfigProperty;
 import alpine.tasks.AlpineTaskScheduler;
 import alpine.util.BooleanUtil;
+import alpine.logging.Logger;
 import org.dependencytrack.event.ClearComponentAnalysisCacheEvent;
 import org.dependencytrack.event.FortifySscUploadEventAbstract;
 import org.dependencytrack.event.DefectDojoUploadEventAbstract;
@@ -37,6 +40,11 @@ import org.dependencytrack.event.VulnerabilityAnalysisEvent;
 import org.dependencytrack.model.ConfigPropertyConstants;
 import org.dependencytrack.persistence.QueryManager;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import static org.dependencytrack.model.ConfigPropertyConstants.*;
 
 /**
@@ -47,14 +55,16 @@ import static org.dependencytrack.model.ConfigPropertyConstants.*;
  */
 public final class TaskScheduler extends AlpineTaskScheduler {
 
+    private static final Logger LOGGER = Logger.getLogger(TaskScheduler.class);
     // Holds an instance of TaskScheduler
     private static final TaskScheduler INSTANCE = new TaskScheduler();
+    // Holds a list of all timers created during construction
+    private final List<Timer> timers = new ArrayList<>();
 
     /**
      * Private constructor.
      */
     private TaskScheduler() {
-
         // Creates a new event that executes every 6 hours (21600000) after an initial 10 second (10000) delay
         scheduleEvent(new LdapSyncEvent(), 10000, 21600000);
 
@@ -74,10 +84,14 @@ public final class TaskScheduler extends AlpineTaskScheduler {
         scheduleEvent(new MetricsUpdateEvent(MetricsUpdateEvent.Type.VULNERABILITY), 10000, 3600000);
 
         // Creates a new event that executes every 6 hours (21600000) after an initial 6 hour delay
-        scheduleEvent(new VulnerabilityAnalysisEvent(), 21600000, 21600000);
+        String vulnDelay = System.getenv().getOrDefault("DEPENDENCYTRACK_VULNERABILITYANALYSIS_DELAY", "21600000");
+        String vulnInterval = System.getenv().getOrDefault("DEPENDENCYTRACK_VULNERABILITYANALYSIS_INTERVAL", "21600000");
+        scheduleNonParallelizedEvent(new VulnerabilityAnalysisEvent(), Integer.parseInt(vulnDelay), Integer.parseInt(vulnInterval));
 
         // Creates a new event that executes every 24 hours (86400000) after an initial 1 hour (3600000) delay
-        scheduleEvent(new RepositoryMetaEvent(), 3600000, 86400000);
+        String metaDelay = System.getenv().getOrDefault("DEPENDENCYTRACK_REPOSITORYMETA_DELAY", "3600000");
+        String metaInterval = System.getenv().getOrDefault("DEPENDENCYTRACK_REPOSITORYMETA_INTERVAL", "86400000");
+        scheduleNonParallelizedEvent(new RepositoryMetaEvent(), Integer.parseInt(metaDelay), Integer.parseInt(metaInterval));
 
         // Creates a new event that executes every 6 hours (21600000) after an initial 1 hour (3600000) delay
         scheduleEvent(new InternalComponentIdentificationEvent(), 3600000, 21600000);
@@ -117,6 +131,49 @@ public final class TaskScheduler extends AlpineTaskScheduler {
                 final Integer minutes = Integer.valueOf(property.getPropertyValue());
                 scheduleEvent(event, initialDelay, (long)minutes * (long)60 * (long)1000);
             }
+        }
+    }
+
+    protected void scheduleNonParallelizedEvent(final ChainableEvent event, final long delay, final long period) {
+        final Timer timer = new Timer();
+        timer.schedule(new ScheduleNonParallelizedEvent().event(event), delay, period);
+        timers.add(timer);
+    }
+
+    private class ScheduleNonParallelizedEvent extends TimerTask {
+        private ChainableEvent event;
+
+        /**
+         * The Event that will be published
+         * @param event the Event to publish
+         * @return a new ScheduleEvent instance
+         */
+        public TaskScheduler.ScheduleNonParallelizedEvent event(final ChainableEvent event) {
+            this.event = event;
+            return this;
+        }
+
+        /**
+         * Publishes the Event specified in the constructor.
+         * This method publishes to all {@link EventService}s.
+         */
+        public void run() {
+            synchronized (this) {
+                EventService instance = EventService.getInstance();
+                if (instance.isEventBeingProcessed(event)) {
+                    LOGGER.warn("Skipping event '" + event.getClass().getSimpleName() + "' scheduling as previous iteration is still in progress");
+                } else {
+                    instance.publish(event);
+                }
+            }
+        }
+    }
+
+    public void shutdown() {
+        super.shutdown();
+
+        for (final Timer timer: timers) {
+            timer.cancel();
         }
     }
 }
