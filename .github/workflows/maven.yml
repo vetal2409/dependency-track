@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DOCKER_APISERVER_REPO: dependencytrack/apiserver
-      DOCKER_BUNDLED_REPO: dependencytrack/bundled
-      DOCKER_TAG: snapshot
-
+      DOCKER_APISERVER_REPO: stylet/dtrack_api
+#      DOCKER_APISERVER_REPO: dependencytrack/apiserver
+#      DOCKER_BUNDLED_REPO: dependencytrack/bundled
+#      DOCKER_TAG: snapshot
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -54,13 +54,13 @@ jobs:
       if: github.event.inputs.skipTests != 'true'
       run: mvn test -P enhance
 
-    - name: Publish test coverage
-      if: github.ref == 'refs/heads/master' && github.event.inputs.skipTests != 'true'
-      uses: codacy/codacy-coverage-reporter-action@v1
-      with:
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        language: Java
-        coverage-reports: target/jacoco-ut/jacoco.xml
+#    - name: Publish test coverage
+#      if: github.ref == 'refs/heads/master' && github.event.inputs.skipTests != 'true'
+#      uses: codacy/codacy-coverage-reporter-action@v1
+#      with:
+#        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+#        language: Java
+#        coverage-reports: target/jacoco-ut/jacoco.xml
 
     - name: Logging into Docker Hub
       if: github.ref == 'refs/heads/master'
@@ -80,29 +80,29 @@ jobs:
           --platform linux/amd64,linux/arm64 \
           --push .
 
-    - name: Building Docker bundled container
-      if: github.ref == 'refs/heads/master'
-      run: |-
-        docker build -f src/main/docker/Dockerfile \
-          --build-arg COMMIT_SHA=${GITHUB_SHA} \
-          --build-arg APP_VERSION=${DOCKER_TAG} \
-          --build-arg WAR_FILENAME=dependency-track-bundled.jar \
-          -t ${DOCKER_BUNDLED_REPO}:${DOCKER_TAG} \
-          --platform linux/amd64,linux/arm64 \
-          --push .
-
-    - name: Run Trivy vulnerability scanner
-      if: github.ref == 'refs/heads/master'
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: dependencytrack/apiserver:snapshot
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        ignore-unfixed: true
-        vuln-type: 'os'
-
-    - name: Upload Trivy scan results to GitHub Security tab
-      if: github.ref == 'refs/heads/master'
-      uses: github/codeql-action/upload-sarif@v1
-      with:
-        sarif_file: 'trivy-results.sarif'
+#    - name: Building Docker bundled container
+#      if: github.ref == 'refs/heads/master'
+#      run: |-
+#        docker build -f src/main/docker/Dockerfile \
+#          --build-arg COMMIT_SHA=${GITHUB_SHA} \
+#          --build-arg APP_VERSION=${DOCKER_TAG} \
+#          --build-arg WAR_FILENAME=dependency-track-bundled.jar \
+#          -t ${DOCKER_BUNDLED_REPO}:${DOCKER_TAG} \
+#          --platform linux/amd64,linux/arm64 \
+#          --push .
+#
+#    - name: Run Trivy vulnerability scanner
+#      if: github.ref == 'refs/heads/master'
+#      uses: aquasecurity/trivy-action@master
+#      with:
+#        image-ref: dependencytrack/apiserver:snapshot
+#        format: 'sarif'
+#        output: 'trivy-results.sarif'
+#        ignore-unfixed: true
+#        vuln-type: 'os'
+#
+#    - name: Upload Trivy scan results to GitHub Security tab
+#      if: github.ref == 'refs/heads/master'
+#      uses: github/codeql-action/upload-sarif@v1
+#      with:
+#        sarif_file: 'trivy-results.sarif'
