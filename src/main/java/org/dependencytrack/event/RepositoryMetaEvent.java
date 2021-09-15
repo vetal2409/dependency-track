@@ -18,10 +18,10 @@
  */
 package org.dependencytrack.event;
 
-import alpine.event.framework.Event;
+import alpine.event.framework.AbstractChainableEvent;
 import org.dependencytrack.model.Component;
 
-public class RepositoryMetaEvent implements Event {
+public class RepositoryMetaEvent extends AbstractChainableEvent {
 
     private Component component;
 
