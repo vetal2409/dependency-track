@@ -67,6 +67,9 @@
         <appender-ref ref="EMBEDDED_SERVER" />
     </logger>
 
+    <logger name="javamelody" level="ERROR"/>
+    <logger name="net.bull.javamelody" level="ERROR"/>
+
     <root level="WARN">
         <appender-ref ref="FILE" />
         <appender-ref ref="SECURITY_CONSOLE" />
