@@ -21,6 +21,7 @@ package org.dependencytrack.tasks;
 import alpine.common.logging.Logger;
 import alpine.event.framework.Event;
 import alpine.event.framework.Subscriber;
+import alpine.persistence.PaginatedResult;
 import org.dependencytrack.event.InternalComponentIdentificationEvent;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.persistence.QueryManager;
@@ -44,33 +45,48 @@ public class InternalComponentIdentificationTask implements Subscriber {
             return;
         }
         final InternalComponentIdentificationEvent event = (InternalComponentIdentificationEvent)e;
-        LOGGER.info("Starting internal component identification task");
-        if (event.getComponents().size() > 0) {
-            analyze(event.getComponents());
-        } else {
-            analyze(null);
+
+        try (final QueryManager qm = new QueryManager(0, 200)) {
+            if (event.getComponents().size() > 0) {
+                LOGGER.info("Starting internal component identification task for " + event.getComponents().size() + "components");
+                analyze(qm, event.getComponents());
+                LOGGER.info("Internal component identification task completed");
+            } else {
+                LOGGER.info("Starting, portfolio wide, internal component identification task");
+                final long total = qm.getCount(Component.class);
+                long count = 0;
+                while (count < total) {
+                    final PaginatedResult result = qm.getComponents();
+                    final List<Component> components = result.getList(Component.class);
+
+                    analyze(qm, components);
+
+                    count += result.getObjects().size();
+                    LOGGER.info("Completed identification of " + count + " out of " + total + " components");
+                    qm.advancePagination();
+                }
+
+                LOGGER.info("Internal, portfolio wide, component identification task completed");
+            }
         }
-        LOGGER.info("Internal component identification task completed");
     }
 
-    private void analyze(final List<Component> components) {
-        try (final QueryManager qm = new QueryManager()) {
-            for (final Component component : components != null ? components : qm.getAllComponents()) {
-                final boolean internal = InternalComponentIdentificationUtil.isInternalComponent(component, qm);
+    private void analyze(final QueryManager qm, final List<Component> components) {
+        for (final Component component : components) {
+            final boolean internal = InternalComponentIdentificationUtil.isInternalComponent(component, qm);
+            if (internal) {
+                LOGGER.debug("Component " + component + " was identified to be internal");
+            }
+            if (component.isInternal() != internal) { // We want to log changes to a component's internal status.
                 if (internal) {
-                    LOGGER.debug("Component " + component + " was identified to be internal");
+                    LOGGER.info("Component " + component + " was identified to be internal. It was previously not an internal component.");
+                } else {
+                    LOGGER.info("Component " + component + " was previously identified as an internal component. It is no longer identified as internal.");
                 }
-                if (component.isInternal() != internal) { // We want to log changes to a component's internal status.
-                    if (internal) {
-                        LOGGER.info("Component " + component + " was identified to be internal. It was previously not an internal component.");
-                    } else {
-                        LOGGER.info("Component " + component + " was previously identified as an internal component. It is no longer identified as internal.");
-                    }
-                }
-                if (component.isInternal() != internal) {
-                    component.setInternal(internal);
-                    qm.persist(component);
-                }
+            }
+            if (component.isInternal() != internal) {
+                component.setInternal(internal);
+                qm.persist(component);
             }
         }
     }

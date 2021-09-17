@@ -16,7 +16,7 @@ ENV TZ=Etc/UTC \
     # Dependency-Track's default logging level
     LOGGING_LEVEL=INFO \
     # Environment variables that can be passed at runtime
-    JAVA_OPTIONS="-XX:+UseParallelGC -XX:MaxRAMPercentage=90.0" \
+    JAVA_OPTIONS="-XX:+UseParallelGC -XX:MaxRAMPercentage=50.0" \
     # The web context defaults to the root. To override, supply an alternative context which starts with a / but does not end with one
     # Example: /dtrack
     CONTEXT="/" \
