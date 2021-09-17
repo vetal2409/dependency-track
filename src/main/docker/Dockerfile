@@ -9,6 +9,9 @@ ARG DATA_DIR=/data/
 ARG USERNAME=dtrack
 ARG WAR_FILENAME=dependency-track-apiserver.war
 
+# https://github.com/javamelody/javamelody/issues/819
+RUN apk add --no-cache freetype fontconfig
+
 # Create the directory where Dependency-Track will store its data (${DATA_DIR}) and the external library directory (${EXTLIB_DIR})
 # Create a user and assign home directory to a ${DATA_DIR}
 # Ensure UID 1000 & GID 1000 own all the needed directories
