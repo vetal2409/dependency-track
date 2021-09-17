@@ -27,6 +27,7 @@ import alpine.notification.NotificationLevel;
 import alpine.persistence.AlpineQueryManager;
 import alpine.persistence.PaginatedResult;
 import alpine.resources.AlpineRequest;
+import alpine.resources.Pagination;
 import alpine.util.BooleanUtil;
 import com.github.packageurl.PackageURL;
 import org.dependencytrack.event.IndexEvent;
@@ -122,6 +123,11 @@ public class QueryManager extends AlpineQueryManager {
         this.request = request;
     }
 
+    public QueryManager(int offset, int limit) {
+        super();
+        this.pagination = new Pagination(Pagination.Strategy.OFFSET, offset, limit);
+    }
+
     /**
      * Constructs a new QueryManager.
      * @param request an AlpineRequest object
@@ -131,6 +137,10 @@ public class QueryManager extends AlpineQueryManager {
         this.request = request;
     }
 
+    public void setPagination(Pagination pagination) {
+        this.pagination = pagination;
+    }
+
     /**
      * Lazy instantiation of ProjectQueryManager.
      * @return a ProjectQueryManager object
@@ -138,6 +148,7 @@ public class QueryManager extends AlpineQueryManager {
     private ProjectQueryManager getProjectQueryManager() {
         if (projectQueryManager == null) {
             projectQueryManager = (request == null) ? new ProjectQueryManager(getPersistenceManager()) : new ProjectQueryManager(getPersistenceManager(), request);
+            projectQueryManager.setPagination(this.pagination);
         }
         return projectQueryManager;
     }
@@ -149,6 +160,7 @@ public class QueryManager extends AlpineQueryManager {
     private ComponentQueryManager getComponentQueryManager() {
         if (componentQueryManager == null) {
             componentQueryManager = (request == null) ? new ComponentQueryManager(getPersistenceManager()) : new ComponentQueryManager(getPersistenceManager(), request);
+            componentQueryManager.setPagination(this.pagination);
         }
         return componentQueryManager;
     }
@@ -160,6 +172,7 @@ public class QueryManager extends AlpineQueryManager {
     private LicenseQueryManager getLicenseQueryManager() {
         if (licenseQueryManager == null) {
             licenseQueryManager = (request == null) ? new LicenseQueryManager(getPersistenceManager()) : new LicenseQueryManager(getPersistenceManager(), request);
+            licenseQueryManager.setPagination(this.pagination);
         }
         return licenseQueryManager;
     }
@@ -171,6 +184,7 @@ public class QueryManager extends AlpineQueryManager {
     private BomQueryManager getBomQueryManager() {
         if (bomQueryManager == null) {
             bomQueryManager = (request == null) ? new BomQueryManager(getPersistenceManager()) : new BomQueryManager(getPersistenceManager(), request);
+            bomQueryManager.setPagination(this.pagination);
         }
         return bomQueryManager;
     }
@@ -182,6 +196,7 @@ public class QueryManager extends AlpineQueryManager {
     private PolicyQueryManager getPolicyQueryManager() {
         if (policyQueryManager == null) {
             policyQueryManager = (request == null) ? new PolicyQueryManager(getPersistenceManager()) : new PolicyQueryManager(getPersistenceManager(), request);
+            policyQueryManager.setPagination(this.pagination);
         }
         return policyQueryManager;
     }
@@ -193,6 +208,7 @@ public class QueryManager extends AlpineQueryManager {
     private VulnerabilityQueryManager getVulnerabilityQueryManager() {
         if (vulnerabilityQueryManager == null) {
             vulnerabilityQueryManager = (request == null) ? new VulnerabilityQueryManager(getPersistenceManager()) : new VulnerabilityQueryManager(getPersistenceManager(), request);
+            vulnerabilityQueryManager.setPagination(this.pagination);
         }
         return vulnerabilityQueryManager;
     }
@@ -204,6 +220,7 @@ public class QueryManager extends AlpineQueryManager {
     private VulnerableSoftwareQueryManager getVulnerableSoftwareQueryManager() {
         if (vulnerableSoftwareQueryManager == null) {
             vulnerableSoftwareQueryManager = (request == null) ? new VulnerableSoftwareQueryManager(getPersistenceManager()) : new VulnerableSoftwareQueryManager(getPersistenceManager(), request);
+            vulnerableSoftwareQueryManager.setPagination(this.pagination);
         }
         return vulnerableSoftwareQueryManager;
     }
@@ -215,6 +232,7 @@ public class QueryManager extends AlpineQueryManager {
     private ServiceComponentQueryManager getServiceComponentQueryManager() {
         if (serviceComponentQueryManager == null) {
             serviceComponentQueryManager = (request == null) ? new ServiceComponentQueryManager(getPersistenceManager()) : new ServiceComponentQueryManager(getPersistenceManager(), request);
+            serviceComponentQueryManager.setPagination(this.pagination);
         }
         return serviceComponentQueryManager;
     }
@@ -226,6 +244,7 @@ public class QueryManager extends AlpineQueryManager {
     private FindingsQueryManager getFindingsQueryManager() {
         if (findingsQueryManager == null) {
             findingsQueryManager = (request == null) ? new FindingsQueryManager(getPersistenceManager()) : new FindingsQueryManager(getPersistenceManager(), request);
+            findingsQueryManager.setPagination(this.pagination);
         }
         return findingsQueryManager;
     }
@@ -237,6 +256,7 @@ public class QueryManager extends AlpineQueryManager {
     private MetricsQueryManager getMetricsQueryManager() {
         if (metricsQueryManager == null) {
             metricsQueryManager = (request == null) ? new MetricsQueryManager(getPersistenceManager()) : new MetricsQueryManager(getPersistenceManager(), request);
+            metricsQueryManager.setPagination(this.pagination);
         }
         return metricsQueryManager;
     }
@@ -248,6 +268,7 @@ public class QueryManager extends AlpineQueryManager {
     private RepositoryQueryManager getRepositoryQueryManager() {
         if (repositoryQueryManager == null) {
             repositoryQueryManager = (request == null) ? new RepositoryQueryManager(getPersistenceManager()) : new RepositoryQueryManager(getPersistenceManager(), request);
+            repositoryQueryManager.setPagination(this.pagination);
         }
         return repositoryQueryManager;
     }
@@ -259,6 +280,7 @@ public class QueryManager extends AlpineQueryManager {
     private NotificationQueryManager getNotificationQueryManager() {
         if (notificationQueryManager == null) {
             notificationQueryManager = (request == null) ? new NotificationQueryManager(getPersistenceManager()) : new NotificationQueryManager(getPersistenceManager(), request);
+            notificationQueryManager.setPagination(this.pagination);
         }
         return notificationQueryManager;
     }
@@ -270,6 +292,7 @@ public class QueryManager extends AlpineQueryManager {
     private CacheQueryManager getCacheQueryManager() {
         if (cacheQueryManager == null) {
             cacheQueryManager = (request == null) ? new CacheQueryManager(getPersistenceManager()) : new CacheQueryManager(getPersistenceManager(), request);
+            cacheQueryManager.setPagination(this.pagination);
         }
         return cacheQueryManager;
     }
