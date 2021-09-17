@@ -24,9 +24,7 @@ import alpine.event.framework.ChainableEvent;
 import alpine.event.framework.Event;
 import alpine.event.framework.EventService;
 import alpine.model.ConfigProperty;
-import alpine.tasks.AlpineTaskScheduler;
-import alpine.util.BooleanUtil;
-import alpine.logging.Logger;
+import alpine.common.logging.Logger;
 import alpine.server.tasks.AlpineTaskScheduler;
 import org.dependencytrack.event.ClearComponentAnalysisCacheEvent;
 import org.dependencytrack.event.FortifySscUploadEventAbstract;
@@ -80,10 +78,15 @@ public final class TaskScheduler extends AlpineTaskScheduler {
         scheduleEvent(new VulnDbSyncEvent(), 60000, 86400000);
 
         // Creates a new event that executes every 1 hour (3600000) after an initial 10 second (10000) delay
-        scheduleEvent(new MetricsUpdateEvent(MetricsUpdateEvent.Type.PORTFOLIO), 10000, 3600000);
+        // TODO: uncomment this as soon as Metrics logic will be fixed, now they are useless anyway
+        //  also how SindletonEvent works incorrectly, schedule of this and the following event at the same time - leads to
+        //  the skip of the execution for one of them
+        // scheduleEvent(new MetricsUpdateEvent(MetricsUpdateEvent.Type.PORTFOLIO), 10000, 3600000);
 
         // Creates a new event that executes every 1 hour (3600000) after an initial 10 second (10000) delay
-        scheduleEvent(new MetricsUpdateEvent(MetricsUpdateEvent.Type.VULNERABILITY), 10000, 3600000);
+        // TODO: uncomment this as soon as Metrics logic will be fixed, now they are useless anyway. Also there are incorrect
+        //  pagination use inside 'updateVulnerabilitiesMetrics' method
+        // scheduleEvent(new MetricsUpdateEvent(MetricsUpdateEvent.Type.VULNERABILITY), 10000, 3600000);
 
         // Creates a new event that executes every 24 hours (86400000) after an initial 6 hour delay
         String vulnDelay = System.getenv().getOrDefault("DEPENDENCYTRACK_VULNERABILITYANALYSIS_DELAY", "21600000");

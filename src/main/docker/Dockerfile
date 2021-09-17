@@ -15,6 +15,9 @@ ARG WAR_FILENAME=dependency-track-apiserver.jar
 # https://github.com/javamelody/javamelody/issues/819
 RUN apk add --no-cache freetype fontconfig
 
+# https://github.com/javamelody/javamelody/issues/819
+RUN apk add --no-cache freetype fontconfig
+
 ENV TZ=Etc/UTC \
     # Dependency-Track's default logging level
     LOGGING_LEVEL=INFO \
