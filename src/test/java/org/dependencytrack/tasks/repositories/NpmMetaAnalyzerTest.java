@@ -19,12 +19,13 @@
 package org.dependencytrack.tasks.repositories;
 
 import com.github.packageurl.PackageURL;
+import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.RepositoryType;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class NpmMetaAnalyzerTest {
+public class NpmMetaAnalyzerTest extends PersistenceCapableTest {
 
     @Test
     public void testAnalyzer() throws Exception {
