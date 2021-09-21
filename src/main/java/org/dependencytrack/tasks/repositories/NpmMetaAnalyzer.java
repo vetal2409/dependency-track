@@ -65,12 +65,18 @@ public class NpmMetaAnalyzer extends AbstractMetaAnalyzer {
         final UnirestInstance ui = UnirestFactory.getUnirestInstance();
         final MetaModel meta = new MetaModel(component);
         if (component.getPurl() != null) {
-
             final String packageName;
             if (component.getPurl().getNamespace() != null) {
                 packageName = component.getPurl().getNamespace().replace("@", "%40") + "%2F" + component.getPurl().getName();
             } else {
                 packageName = component.getPurl().getName();
+            }
+
+            String cachedVersion = this.getCurrentCache(RepositoryType.NPM, this.baseUrl, packageName);
+            if (cachedVersion != null) {
+                meta.setLatestVersion(cachedVersion);
+
+                return meta;
             }
 
             final String url = String.format(baseUrl + API_URL, packageName);
@@ -83,6 +89,7 @@ public class NpmMetaAnalyzer extends AbstractMetaAnalyzer {
                         final String latest = response.getBody().getObject().optString("latest");
                         if (latest != null) {
                             meta.setLatestVersion(latest);
+                            this.setCache(RepositoryType.NPM, this.baseUrl, packageName, latest);
                         }
                     }
                 } else {
@@ -92,6 +99,7 @@ public class NpmMetaAnalyzer extends AbstractMetaAnalyzer {
                 handleRequestException(LOGGER, e);
             }
         }
+
         return meta;
     }
 
