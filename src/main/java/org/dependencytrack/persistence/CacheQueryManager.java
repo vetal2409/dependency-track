@@ -25,6 +25,8 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import javax.json.JsonObject;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CacheQueryManager extends QueryManager implements IQueryManager {
 
@@ -70,7 +72,15 @@ public class CacheQueryManager extends QueryManager implements IQueryManager {
     }
 
     public void clearComponentAnalysisCache() {
+        Map<String, Date> params = new HashMap<>();
+
         final Query<ComponentAnalysisCache> query = pm.newQuery(ComponentAnalysisCache.class);
+        query.setFilter("lastOccurrence < :oldCache");
+
+        Date today = new Date();
+        params.put("oldCache", new Date(today.getTime() - (1000 * 60 * 60 * 24 * 3))); // 3 days
+        query.setNamedParameters(params);
+
         query.deletePersistentAll();
     }
 }
