@@ -69,11 +69,11 @@ public class NpmAuditAnalysisTask extends BaseComponentAnalyzerTask implements C
                 return;
             }
             final NpmAuditAnalysisEvent event = (NpmAuditAnalysisEvent)e;
-            LOGGER.info("Starting Node Audit analysis task");
+            LOGGER.info("Starting Node Audit analysis task for " + event.getComponents().size() + " components");
             if (event.getComponents().size() > 0) {
                 analyze(event.getComponents());
             }
-            LOGGER.info("Node Audit analysis complete");
+            LOGGER.info("Node Audit analysis complete for " + event.getComponents().size() + " components");
         }
     }
 
