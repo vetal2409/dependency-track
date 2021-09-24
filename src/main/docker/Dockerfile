@@ -38,7 +38,7 @@ RUN mkdir -p ${APP_DIR} ${DATA_DIR} \
     \
     # Install wget for health check
     && apt-get -yqq update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -yqq wget freetype fontconfig \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -yqq wget freetype fontconfig ttf-dejavu \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy JRE from temurin base image
