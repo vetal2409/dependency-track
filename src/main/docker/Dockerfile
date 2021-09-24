@@ -13,7 +13,7 @@ ARG GID=1000
 ARG WAR_FILENAME=dependency-track-apiserver.jar
 
 # https://github.com/javamelody/javamelody/issues/819
-RUN apk add --no-cache freetype fontconfig
+RUN apk add --no-cache freetype fontconfig ttf-dejavu
 
 # https://github.com/javamelody/javamelody/issues/819
 RUN apk add --no-cache freetype fontconfig
