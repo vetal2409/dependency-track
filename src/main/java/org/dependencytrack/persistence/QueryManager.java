@@ -681,6 +681,10 @@ public class QueryManager extends AlpineQueryManager {
         return getComponentQueryManager().getAllComponents(project);
     }
 
+    public long getComponentsCount(Project project) {
+        return getComponentQueryManager().getComponentsCount(project);
+    }
+
     public PaginatedResult getComponents(final Project project, final boolean includeMetrics) {
         return getComponentQueryManager().getComponents(project, includeMetrics);
     }
