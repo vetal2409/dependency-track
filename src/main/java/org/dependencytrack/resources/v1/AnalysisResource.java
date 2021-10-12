@@ -44,6 +44,8 @@ import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.resources.v1.vo.AnalysisRequest;
 import org.dependencytrack.util.NotificationUtil;
+import alpine.event.framework.Event;
+import org.dependencytrack.event.MetricsUpdateEvent;
 
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -196,6 +198,10 @@ public class AnalysisResource extends AlpineResource {
             qm.makeAnalysisComment(analysis, comment, commenter);
             analysis = qm.getObjectById(Analysis.class, analysis.getId());
             NotificationUtil.analyzeNotificationCriteria(qm, analysis, analysisStateChange, suppressionChange);
+
+            final Project detachedProject = qm.detach(Project.class, project.getId());
+            Event.dispatch(new MetricsUpdateEvent(detachedProject));
+
             return Response.ok(analysis).build();
         }
     }
