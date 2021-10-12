@@ -248,15 +248,40 @@ final class PolicyQueryManager extends QueryManager implements IQueryManager {
     /**
      * Returns a List of all Policy objects for a specific component.
      * This method if designed NOT to provide paginated results.
+     *
      * @return a List of all Policy objects
      */
-    @SuppressWarnings("unchecked")
     public List<PolicyViolation> getAllPolicyViolations(final Project project) {
-        final Query<PolicyViolation> query = pm.newQuery(PolicyViolation.class, "project.id == :pid");
-        if (orderBy == null) {
-            query.setOrdering("timestamp desc, component.name, component.version");
+        return getAllPolicyViolations(project, true);
+    }
+
+    /**
+     * Returns a List of all {@link PolicyViolation}s for a specific project.
+     *
+     * @param project           The project to fetch {@link PolicyViolation}s for
+     * @param includeSuppressed Whether to include suppressed violations or not
+     * @return a List of {@link PolicyViolation}s
+     */
+    public List<PolicyViolation> getAllPolicyViolations(final Project project, final boolean includeSuppressed) {
+        final Query<PolicyViolation> query = pm.newQuery(PolicyViolation.class);
+        if (includeSuppressed) {
+            query.setFilter("project.id == :pid");
+        } else {
+            query.setFilter("project.id == :pid && suppressions == 0");
+            query.declareVariables("long suppressions");
+
+            // For a given policy violation, check whether an analysis exists that suppresses it.
+            // The query will return either 0 (no analysis exists or not suppressed) or 1 (suppressed).
+            final Query<ViolationAnalysis> subQuery = pm.newQuery(ViolationAnalysis.class);
+            subQuery.setFilter("policyViolation == :policyViolation && suppressed == true");
+            subQuery.setResult("count(id)");
+            query.addSubquery(subQuery, "long suppressions", null, "this");
         }
-        return (List<PolicyViolation>)query.execute(project.getId());
+        if (orderBy == null) {
+            query.setOrdering("timestamp desc, project.name, project.version, project.name, project.version");
+        }
+        query.setParameters(project.getId());
+        return query.executeList();
     }
 
     /**
@@ -518,4 +543,15 @@ final class PolicyQueryManager extends QueryManager implements IQueryManager {
         return getCount(query, component, type, ViolationAnalysisState.NOT_SET);
     }
 
+    /**
+     * Returns the number of audited policy violations of a given type for a project.
+     * @param project The {@link Project} to retrieve audit counts for
+     * @param type The {@link PolicyViolation.Type} to retrieve audit counts for
+     * @return The total number of audited {@link PolicyViolation}s for the {@link Project}
+     */
+    public long getAuditedCount(final Project project, final PolicyViolation.Type type) {
+        final Query<ViolationAnalysis> query = pm.newQuery(ViolationAnalysis.class);
+        query.setFilter("project == :project && policyViolation.type == :type && analysisState != null && analysisState != :notSet");
+        return getCount(query, project, type, ViolationAnalysisState.NOT_SET);
+    }
 }
