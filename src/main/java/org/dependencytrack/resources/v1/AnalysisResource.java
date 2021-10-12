@@ -19,6 +19,7 @@
 package org.dependencytrack.resources.v1;
 
 import alpine.auth.PermissionRequired;
+import alpine.event.framework.Event;
 import alpine.model.LdapUser;
 import alpine.model.ManagedUser;
 import alpine.model.OidcUser;
@@ -34,6 +35,7 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 import org.apache.commons.lang3.StringUtils;
 import org.dependencytrack.auth.Permissions;
+import org.dependencytrack.event.MetricsUpdateEvent;
 import org.dependencytrack.model.Analysis;
 import org.dependencytrack.model.AnalysisState;
 import org.dependencytrack.model.Component;
@@ -175,6 +177,10 @@ public class AnalysisResource extends AlpineResource {
             qm.makeAnalysisComment(analysis, comment, commenter);
             analysis = qm.getObjectById(Analysis.class, analysis.getId());
             NotificationUtil.analyzeNotificationCriteria(qm, analysis, analysisStateChange, suppressionChange);
+
+            final Project detachedProject = qm.detach(Project.class, project.getId());
+            Event.dispatch(new MetricsUpdateEvent(detachedProject));
+
             return Response.ok(analysis).build();
         }
     }
