@@ -45,7 +45,7 @@ public class InternalComponentIdentificationTask implements Subscriber {
         }
         final InternalComponentIdentificationEvent event = (InternalComponentIdentificationEvent)e;
 
-        try (final QueryManager qm = new QueryManager(0, 200)) {
+        try (final QueryManager qm = new QueryManager(0, 2000)) {
             if (event.getComponents().size() > 0) {
                 LOGGER.info("Starting internal component identification task for " + event.getComponents().size() + "components");
                 analyze(qm, event.getComponents());
