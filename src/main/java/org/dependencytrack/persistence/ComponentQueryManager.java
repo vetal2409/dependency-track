@@ -122,6 +122,16 @@ final class ComponentQueryManager extends QueryManager implements IQueryManager 
     }
 
     /**
+     * Returns the number of suppressed vulnerabilities for the specified Component.
+     * @param project the Project to retrieve components for
+     * @return the total number of suppressed vulnerabilities for the component
+     */
+    public long getComponentsCount(Project project) {
+        final Query<Component> query = pm.newQuery(Component.class, "project == :project");
+        return getCount(query, project);
+    }
+
+    /**
      * Returns a List of Dependency for the specified Project.
      * @param project the Project to retrieve dependencies of
      * @return a List of Dependency objects
