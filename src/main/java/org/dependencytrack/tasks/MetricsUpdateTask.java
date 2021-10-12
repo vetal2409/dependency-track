@@ -24,16 +24,7 @@ import alpine.logging.Logger;
 import alpine.persistence.PaginatedResult;
 import org.dependencytrack.event.MetricsUpdateEvent;
 import org.dependencytrack.metrics.Metrics;
-import org.dependencytrack.model.Component;
-import org.dependencytrack.model.DependencyMetrics;
-import org.dependencytrack.model.Policy;
-import org.dependencytrack.model.PolicyViolation;
-import org.dependencytrack.model.PortfolioMetrics;
-import org.dependencytrack.model.Project;
-import org.dependencytrack.model.ProjectMetrics;
-import org.dependencytrack.model.Severity;
-import org.dependencytrack.model.Vulnerability;
-import org.dependencytrack.model.VulnerabilityMetrics;
+import org.dependencytrack.model.*;
 import org.dependencytrack.persistence.QueryManager;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -258,58 +249,17 @@ public class MetricsUpdateTask implements Subscriber {
 
         final MetricCounters counters = new MetricCounters();
 
-        // Holds the metrics returned from all components that are dependencies of the project
-        final List<MetricCounters> countersList = new ArrayList<>();
+        counters.components = toIntExact(qm.getComponentsCount(project));
 
-        // Retrieve all components for the project
-        LOGGER.debug("Retrieving all components for project: " + project.getUuid());
-        final List<Component> components = qm.getAllComponents(project);
-        LOGGER.debug("Project metrics will include " + components.size() + " components");
-
-        LOGGER.debug("Iterating through dependencies");
-        // Iterate through all dependencies
-        for (final Component component: components) {
-            try {
-                // Update the component metrics
-                final MetricCounters componentMetrics = updateComponentMetrics(qm, component.getId());
-                // Adds the metrics from the component to the list of metrics for the project
-                countersList.add(componentMetrics);
-            } catch (Exception e) {
-                LOGGER.error("An unexpected error occurred while updating project metrics and iterating through components. The error occurred while updating metrics for project: " + project.getUuid().toString() + " and component: " + component.getUuid().toString(), e);
-            }
+        final List<Finding> findings = qm.getFindings(project, false);
+        for (final Finding finding: findings) {
+            final Vulnerability vulnerability = qm.getObjectByUuid(Vulnerability.class, (String)finding.getVulnerability().get("uuid"));
+            counters.updateSeverity(vulnerability.getSeverity());
+            counters.vulnerableComponents++;
         }
-        LOGGER.debug("Component iteration complete");
+        counters.vulnerabilities = counters.severitySum();
 
-        // Iterate through the metrics from all components that are dependencies of the project
-        for (final MetricCounters depMetric: countersList) {
-            // Add individual component metrics to the overall project metrics
-            counters.components++;
-            counters.critical += depMetric.critical;
-            counters.high += depMetric.high;
-            counters.medium += depMetric.medium;
-            counters.low += depMetric.low;
-            counters.unassigned += depMetric.unassigned;
-            counters.vulnerabilities += depMetric.severitySum();
-
-            if (depMetric.severitySum() > 0) {
-                counters.vulnerableComponents++;
-            }
-            counters.policyViolationsFail += depMetric.policyViolationsFail;
-            counters.policyViolationsWarn += depMetric.policyViolationsWarn;
-            counters.policyViolationsInfo += depMetric.policyViolationsInfo;
-            counters.policyViolationsTotal += depMetric.policyViolationsTotal;
-            counters.policyViolationsAudited += depMetric.policyViolationsAudited;
-            counters.policyViolationsUnaudited += depMetric.policyViolationsUnaudited;
-            counters.policyViolationsSecurityTotal += depMetric.policyViolationsSecurityTotal;
-            counters.policyViolationsSecurityAudited += depMetric.policyViolationsSecurityAudited;
-            counters.policyViolationsSecurityUnaudited += depMetric.policyViolationsSecurityUnaudited;
-            counters.policyViolationsLicenseTotal += depMetric.policyViolationsLicenseTotal;
-            counters.policyViolationsLicenseAudited += depMetric.policyViolationsLicenseAudited;
-            counters.policyViolationsLicenseUnaudited += depMetric.policyViolationsLicenseUnaudited;
-            counters.policyViolationsOperationalTotal += depMetric.policyViolationsOperationalTotal;
-            counters.policyViolationsOperationalAudited += depMetric.policyViolationsOperationalAudited;
-            counters.policyViolationsOperationalUnaudited += depMetric.policyViolationsOperationalUnaudited;
-        }
+        updateCounterWithPolicyViolations(counters, qm.getAllPolicyViolations(project));
 
         // For the time being finding and vulnerability counts are the same.
         // However, vulns may be defined as 'confirmed' in a future release.
@@ -415,7 +365,7 @@ public class MetricsUpdateTask implements Subscriber {
      * @param oid object ID of the component to perform metric updates on
      * @return MetricCounters
      */
-    private MetricCounters updateComponentMetrics(final QueryManager qm, final long oid) {
+    private void updateComponentMetrics(final QueryManager qm, final long oid) {
         final Component component = qm.getObjectById(Component.class, oid);
         LOGGER.debug("Executing metrics update for component: " + component.getUuid());
         final Date measuredAt = new Date();
@@ -435,32 +385,7 @@ public class MetricsUpdateTask implements Subscriber {
         counters.findingsAudited = toIntExact(qm.getAuditedCount(component));
         counters.findingsUnaudited = counters.findingsTotal - counters.findingsAudited;
 
-        for (final PolicyViolation violation: qm.getAllPolicyViolations(component)) {
-            counters.policyViolationsTotal++;
-
-            // Assign violation states
-            if (Policy.ViolationState.FAIL == violation.getPolicyCondition().getPolicy().getViolationState()) {
-                counters.policyViolationsFail++;
-            } else if (Policy.ViolationState.WARN == violation.getPolicyCondition().getPolicy().getViolationState()) {
-                counters.policyViolationsWarn++;
-            } else if (Policy.ViolationState.INFO == violation.getPolicyCondition().getPolicy().getViolationState()) {
-                counters.policyViolationsInfo++;
-            }
-            // Assign violation types
-            if (PolicyViolation.Type.LICENSE == violation.getType()) {
-                counters.policyViolationsLicenseTotal++;
-                //counters.policyViolationsLicenseAudited = qm.getAuditedCount(violation, component);
-                counters.policyViolationsLicenseUnaudited = counters.policyViolationsLicenseTotal - counters.policyViolationsLicenseAudited;
-            } else if (PolicyViolation.Type.SECURITY == violation.getType()) {
-                counters.policyViolationsSecurityTotal++;
-                //counters.policyViolationsSecurityAudited = qm.getAuditedCount(violation, component);
-                counters.policyViolationsSecurityUnaudited = counters.policyViolationsSecurityTotal - counters.policyViolationsSecurityAudited;
-            } else if (PolicyViolation.Type.OPERATIONAL == violation.getType()) {
-                counters.policyViolationsOperationalTotal++;
-                //counters.policyViolationsOperationalAudited = qm.getAuditedCount(violation, component);
-                counters.policyViolationsOperationalUnaudited = counters.policyViolationsOperationalTotal - counters.policyViolationsOperationalAudited;
-            }
-        }
+        updateCounterWithPolicyViolations(counters, qm.getAllPolicyViolations(component));
 
         // Query for an existing ComponentMetrics
         final DependencyMetrics last = qm.getMostRecentDependencyMetrics(component);
@@ -543,8 +468,37 @@ public class MetricsUpdateTask implements Subscriber {
             LOGGER.debug("Persisting metrics for component: " + component.getUuid());
             qm.persist(component);
         }
+
         LOGGER.debug("Completed metrics update for component: " + component.getUuid());
-        return counters;
+    }
+
+    private void updateCounterWithPolicyViolations(MetricCounters counters, List<PolicyViolation> violations) {
+        for (final PolicyViolation violation: violations) {
+            counters.policyViolationsTotal++;
+
+            // Assign violation states
+            if (Policy.ViolationState.FAIL == violation.getPolicyCondition().getPolicy().getViolationState()) {
+                counters.policyViolationsFail++;
+            } else if (Policy.ViolationState.WARN == violation.getPolicyCondition().getPolicy().getViolationState()) {
+                counters.policyViolationsWarn++;
+            } else if (Policy.ViolationState.INFO == violation.getPolicyCondition().getPolicy().getViolationState()) {
+                counters.policyViolationsInfo++;
+            }
+            // Assign violation types
+            if (PolicyViolation.Type.LICENSE == violation.getType()) {
+                counters.policyViolationsLicenseTotal++;
+                //counters.policyViolationsLicenseAudited = qm.getAuditedCount(violation, component);
+                counters.policyViolationsLicenseUnaudited = counters.policyViolationsLicenseTotal - counters.policyViolationsLicenseAudited;
+            } else if (PolicyViolation.Type.SECURITY == violation.getType()) {
+                counters.policyViolationsSecurityTotal++;
+                //counters.policyViolationsSecurityAudited = qm.getAuditedCount(violation, component);
+                counters.policyViolationsSecurityUnaudited = counters.policyViolationsSecurityTotal - counters.policyViolationsSecurityAudited;
+            } else if (PolicyViolation.Type.OPERATIONAL == violation.getType()) {
+                counters.policyViolationsOperationalTotal++;
+                //counters.policyViolationsOperationalAudited = qm.getAuditedCount(violation, component);
+                counters.policyViolationsOperationalUnaudited = counters.policyViolationsOperationalTotal - counters.policyViolationsOperationalAudited;
+            }
+        }
     }
 
     /**

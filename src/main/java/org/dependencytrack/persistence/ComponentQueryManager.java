@@ -26,14 +26,8 @@ import alpine.persistence.PaginatedResult;
 import alpine.resources.AlpineRequest;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
-import org.apache.commons.lang3.StringUtils;
 import org.dependencytrack.event.IndexEvent;
-import org.dependencytrack.model.Component;
-import org.dependencytrack.model.ComponentIdentity;
-import org.dependencytrack.model.ConfigPropertyConstants;
-import org.dependencytrack.model.Project;
-import org.dependencytrack.model.RepositoryMetaComponent;
-import org.dependencytrack.model.RepositoryType;
+import org.dependencytrack.model.*;
 import javax.jdo.FetchPlan;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
@@ -119,6 +113,16 @@ final class ComponentQueryManager extends QueryManager implements IQueryManager 
         query.getFetchPlan().setMaxFetchDepth(2);
         query.setOrdering("name asc");
         return (List<Component>)query.execute(project);
+    }
+
+    /**
+     * Returns the number of suppressed vulnerabilities for the specified Component.
+     * @param project the Project to retrieve components for
+     * @return the total number of suppressed vulnerabilities for the component
+     */
+    public long getComponentsCount(Project project) {
+        final Query<Component> query = pm.newQuery(Component.class, "project == :project");
+        return getCount(query, project);
     }
 
     /**
