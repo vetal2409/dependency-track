@@ -202,6 +202,15 @@ public class NpmAuditAnalysisTask extends BaseComponentAnalyzerTask implements C
                 final Component component = qm.getObjectById(Component.class, c.getId());
                 for (final Advisory advisory: componentAdvisories) {
                     final Vulnerability vulnerability = qm.getVulnerabilityByVulnId(Vulnerability.Source.NPM, String.valueOf(advisory.getId()));
+                    if (vulnerability == null) {
+                        LOGGER.error("Error during fetch of the NPM vulnerability '" +
+                                advisory.getId()
+                                + "' for component '"
+                                + component.getUuid()
+                        );
+                        continue;
+                    }
+
                     NotificationUtil.analyzeNotificationCriteria(qm, vulnerability, component);
                     qm.addVulnerability(vulnerability, component, this.getAnalyzerIdentity());
                     addVulnerabilityToCache(component, vulnerability);
