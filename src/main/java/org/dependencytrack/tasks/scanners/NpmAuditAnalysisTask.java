@@ -34,6 +34,7 @@ import org.dependencytrack.model.Component;
 import org.dependencytrack.model.ConfigPropertyConstants;
 import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.parser.npm.NpmAuditParser;
+import org.dependencytrack.parser.npm.NpmHelpers;
 import org.dependencytrack.parser.npm.model.Advisory;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.util.NotificationUtil;
@@ -201,14 +202,14 @@ public class NpmAuditAnalysisTask extends BaseComponentAnalyzerTask implements C
                 final List<Advisory> componentAdvisories = getComponentFromAdvisories(advisories, c);
                 final Component component = qm.getObjectById(Component.class, c.getId());
                 for (final Advisory advisory: componentAdvisories) {
-                    final Vulnerability vulnerability = qm.getVulnerabilityByVulnId(Vulnerability.Source.NPM, String.valueOf(advisory.getId()));
+                    Vulnerability vulnerability = qm.getVulnerabilityByVulnId(Vulnerability.Source.NPM, String.valueOf(advisory.getId()));
                     if (vulnerability == null) {
-                        LOGGER.error("Error during fetch of the NPM vulnerability '" +
-                                advisory.getId()
-                                + "' for component '"
-                                + component.getUuid()
-                        );
-                        continue;
+                        /*
+                        The vulnerability is not in Dependency-Track yet.
+                        This happens for vulnerabilities that are in GitHub DB: https://github.blog/2021-10-07-github-advisory-database-now-powers-npm-audit/
+                        Regardless, the vuln needs to be added to the database.
+                        */
+                        vulnerability = qm.synchronizeVulnerability(NpmHelpers.mapAdvisoryToVulnerability(qm, advisory), true);
                     }
 
                     NotificationUtil.analyzeNotificationCriteria(qm, vulnerability, component);
