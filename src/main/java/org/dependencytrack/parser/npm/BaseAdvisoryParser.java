@@ -34,7 +34,10 @@ public abstract class BaseAdvisoryParser {
 
     protected Advisory parse(final JSONObject object) {
         final Advisory advisory = new Advisory();
-        advisory.setId(object.getInt("id"));
+        advisory.setId(object.has("github_advisory_id")
+                ? object.getString("github_advisory_id")
+                : String.valueOf(object.getInt("id"))
+        );
         advisory.setOverview(object.optString("overview", null));
         advisory.setReferences(object.optString("references", null));
         advisory.setCreated(object.optString("created", null));

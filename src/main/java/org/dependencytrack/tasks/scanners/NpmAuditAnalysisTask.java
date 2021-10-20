@@ -202,7 +202,16 @@ public class NpmAuditAnalysisTask extends BaseComponentAnalyzerTask implements C
                 final List<Advisory> componentAdvisories = getComponentFromAdvisories(advisories, c);
                 final Component component = qm.getObjectById(Component.class, c.getId());
                 for (final Advisory advisory: componentAdvisories) {
-                    Vulnerability vulnerability = qm.getVulnerabilityByVulnId(Vulnerability.Source.NPM, String.valueOf(advisory.getId()));
+                    Vulnerability vulnerability;
+                    if (advisory.getCves().length == 1) {
+                        vulnerability = qm.getVulnerabilityByVulnId(Vulnerability.Source.NVD, String.valueOf(advisory.getCves()[0]));
+                    } else if (advisory.getCves().length > 1) {
+                        LOGGER.error("Unpredictable count of CVEs for " + advisory.getId());
+                        continue;
+                    } else {
+                        vulnerability = qm.getVulnerabilityByVulnId(Vulnerability.Source.NPM, String.valueOf(advisory.getId()));
+                    }
+
                     if (vulnerability == null) {
                         /*
                         The vulnerability is not in Dependency-Track yet.

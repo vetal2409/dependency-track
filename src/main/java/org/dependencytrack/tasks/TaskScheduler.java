@@ -68,11 +68,12 @@ public final class TaskScheduler extends AlpineTaskScheduler {
         // Creates a new event that executes every 6 hours (21600000) after an initial 10 second (10000) delay
         scheduleEvent(new LdapSyncEvent(), 10000, 21600000);
 
+        // TODO: to be replaced with GitHub Mirror
         // Creates a new event that executes every 24 hours (86400000) after an initial 10 second (10000) delay
-        scheduleEvent(new NpmAdvisoryMirrorEvent(), 10000, 86400000);
+        // scheduleEvent(new NpmAdvisoryMirrorEvent(), 10000, 86400000);
 
-        // Creates a new event that executes every 24 hours (86400000) after an initial 1 minute (60000) delay
-        scheduleEvent(new NistMirrorEvent(), 60000, 86400000);
+        // Creates a new event that executes every 1 hour (86400000) after an initial 1 minute (60000) delay
+        scheduleEvent(new NistMirrorEvent(), 60000, 3600000);
 
         // Creates a new event that executes every 24 hours (86400000) after an initial 1 minute (60000) delay
         scheduleEvent(new VulnDbSyncEvent(), 60000, 86400000);

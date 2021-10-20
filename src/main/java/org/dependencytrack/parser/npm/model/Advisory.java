@@ -31,7 +31,7 @@ public class Advisory {
     /**
      * The unique ID of the advisory as issued by Node Security Platform.
      */
-    private int id;
+    private String id;
 
     /**
      * The timestamp of which the advisory was created.
@@ -115,11 +115,11 @@ public class Advisory {
     private String cwe;
 
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(final int id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
