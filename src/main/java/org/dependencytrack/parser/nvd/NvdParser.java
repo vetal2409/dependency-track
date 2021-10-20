@@ -145,6 +145,11 @@ public final class NvdParser {
                     final JsonObject ref0 = cve.getJsonObject("references");
                     final JsonArray ref1 = ref0.getJsonArray("reference_data");
                     final StringBuilder sb = new StringBuilder();
+
+                    // Adding link to NVD website
+                    String nvdUrl = "https://nvd.nist.gov/vuln/detail/" + vulnerability.getVulnId();
+                    sb.append("* [").append(nvdUrl).append("](").append(nvdUrl).append(")\n");
+
                     for (int l = 0; l < ref1.size(); l++) {
                         final JsonObject ref2 = ref1.getJsonObject(l);
                         for (final String s : ref2.keySet()) {
