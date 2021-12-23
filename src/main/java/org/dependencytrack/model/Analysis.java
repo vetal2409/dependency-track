@@ -18,9 +18,12 @@
  */
 package org.dependencytrack.model;
 
+import alpine.server.json.TrimmedStringDeserializer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import javax.jdo.annotations.Column;
 import javax.jdo.annotations.Extension;
@@ -95,6 +98,11 @@ public class Analysis implements Serializable {
     @Column(name = "SUPPRESSED")
     @JsonProperty(value = "isSuppressed")
     private boolean suppressed;
+
+    @Persistent(defaultFetchGroup = "true")
+    @Column(name = "RECOMMENDATION", jdbcType = "CLOB", allowsNull = "true")
+    @JsonDeserialize(using = TrimmedStringDeserializer.class)
+    private String recommendation;
 
     public long getId() {
         return id;
@@ -171,5 +179,13 @@ public class Analysis implements Serializable {
 
     public void setSuppressed(boolean suppressed) {
         this.suppressed = suppressed;
+    }
+
+    public String getRecommendation() {
+        return recommendation == null ? "" : recommendation;
+    }
+
+    public void setRecommendation(String recommendation) {
+        this.recommendation = recommendation == null ? "" : recommendation;
     }
 }
