@@ -69,7 +69,7 @@ public class AnalysisResourceTest extends ResourceTest {
         vulnerability.setSeverity(Severity.HIGH);
         vulnerability.setComponents(components);
         qm.createVulnerability(vulnerability, false);
-        qm.makeAnalysis(component, vulnerability, AnalysisState.NOT_AFFECTED, true);
+        qm.makeAnalysis(component, vulnerability, AnalysisState.NOT_AFFECTED, true, "");
         Response response = target(V1_ANALYSIS)
                 .queryParam("project", project.getUuid())
                 .queryParam("component", component.getUuid())
@@ -188,9 +188,9 @@ public class AnalysisResourceTest extends ResourceTest {
         vulnerability.setSeverity(Severity.HIGH);
         vulnerability.setComponents(components);
         qm.createVulnerability(vulnerability, false);
-        qm.makeAnalysis(component, vulnerability, AnalysisState.NOT_AFFECTED, true);
+        qm.makeAnalysis(component, vulnerability, AnalysisState.NOT_AFFECTED, true, "");
         AnalysisRequest request = new AnalysisRequest(project.getUuid().toString(), component.getUuid().toString(),
-                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, "Not an issue", true);
+                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, "Not an issue", true, "");
         Response response = target(V1_ANALYSIS)
                 .request()
                 .header(X_API_KEY, apiKey)
@@ -223,9 +223,9 @@ public class AnalysisResourceTest extends ResourceTest {
         vulnerability.setSeverity(Severity.HIGH);
         vulnerability.setComponents(components);
         qm.createVulnerability(vulnerability, false);
-        qm.makeAnalysis(component, vulnerability, AnalysisState.IN_TRIAGE, false);
+        qm.makeAnalysis(component, vulnerability, AnalysisState.IN_TRIAGE, false, "");
         AnalysisRequest request = new AnalysisRequest(project.getUuid().toString(), component.getUuid().toString(),
-                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, "Not an issue", true);
+                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, "Not an issue", true, "");
         Response response = target(V1_ANALYSIS)
                 .request()
                 .header(X_API_KEY, apiKey)

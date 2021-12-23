@@ -830,8 +830,8 @@ public class QueryManager extends AlpineQueryManager {
     }
 
     public Analysis makeAnalysis(Component component, Vulnerability vulnerability,
-                                 AnalysisState analysisState, Boolean isSuppressed) {
-        return getFindingsQueryManager().makeAnalysis(component, vulnerability, analysisState, isSuppressed);
+                                 AnalysisState analysisState, Boolean isSuppressed, String recommendation) {
+        return getFindingsQueryManager().makeAnalysis(component, vulnerability, analysisState, isSuppressed, recommendation);
     }
 
     public AnalysisComment makeAnalysisComment(Analysis analysis, String comment, String commenter) {

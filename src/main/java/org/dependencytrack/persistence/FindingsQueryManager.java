@@ -163,7 +163,7 @@ public class FindingsQueryManager extends QueryManager implements IQueryManager 
      * @return an Analysis object
      */
     public Analysis makeAnalysis(Component component, Vulnerability vulnerability,
-                                 AnalysisState analysisState, Boolean isSuppressed) {
+                                 AnalysisState analysisState, Boolean isSuppressed, String recommendation) {
         if (analysisState == null) {
             analysisState = AnalysisState.NOT_SET;
         }
@@ -173,10 +173,16 @@ public class FindingsQueryManager extends QueryManager implements IQueryManager 
             analysis.setComponent(component);
             analysis.setVulnerability(vulnerability);
         }
+
         if (isSuppressed != null) {
             analysis.setSuppressed(isSuppressed);
         }
+        if (recommendation != null) {
+            analysis.setRecommendation(recommendation);
+        }
+
         analysis.setAnalysisState(analysisState);
+
         analysis = persist(analysis);
         return getAnalysis(analysis.getComponent(), analysis.getVulnerability());
     }

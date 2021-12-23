@@ -54,19 +54,25 @@ public class AnalysisRequest {
 
     private final Boolean suppressed; // Optional. If not specified, we do not want to set value to false, thus using Boolean object rather than primitive.
 
+    @JsonDeserialize(using = TrimmedStringDeserializer.class)
+    @Pattern(regexp = RegexSequence.Definition.PRINTABLE_CHARS_PLUS, message = "Recommendation may only contain printable characters")
+    private final String recommendation;
+
     @JsonCreator
     public AnalysisRequest(@JsonProperty(value = "project") String project,
                            @JsonProperty(value = "component", required = true) String component,
                            @JsonProperty(value = "vulnerability", required = true) String vulnerability,
                            @JsonProperty(value = "analysisState") AnalysisState analysisState,
                            @JsonProperty(value = "comment") String comment,
-                           @JsonProperty(value = "isSuppressed") Boolean suppressed) {
+                           @JsonProperty(value = "isSuppressed") Boolean suppressed,
+                           @JsonProperty(value = "recommendation") String recommendation) {
         this.project = project;
         this.component = component;
         this.vulnerability = vulnerability;
         this.analysisState = analysisState;
         this.comment = comment;
         this.suppressed = suppressed;
+        this.recommendation = recommendation;
     }
 
     public String getProject() {
@@ -95,5 +101,9 @@ public class AnalysisRequest {
 
     public Boolean isSuppressed() {
         return suppressed;
+    }
+
+    public String getRecommendation() {
+        return recommendation;
     }
 }
