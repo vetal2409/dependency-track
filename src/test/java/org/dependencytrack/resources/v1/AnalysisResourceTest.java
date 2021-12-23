@@ -72,7 +72,7 @@ public class AnalysisResourceTest extends ResourceTest {
         vulnerability.setSeverity(Severity.HIGH);
         vulnerability.setComponents(components);
         qm.createVulnerability(vulnerability, false);
-        qm.makeAnalysis(component, vulnerability, AnalysisState.NOT_AFFECTED, AnalysisJustification.CODE_NOT_REACHABLE, AnalysisResponse.WILL_NOT_FIX, "Analysis details here", true);
+        qm.makeAnalysis(component, vulnerability, AnalysisState.NOT_AFFECTED, AnalysisJustification.CODE_NOT_REACHABLE, AnalysisResponse.WILL_NOT_FIX, "Analysis details here", true, "");
         Response response = target(V1_ANALYSIS)
                 .queryParam("project", project.getUuid())
                 .queryParam("component", component.getUuid())
@@ -191,9 +191,9 @@ public class AnalysisResourceTest extends ResourceTest {
         vulnerability.setSeverity(Severity.HIGH);
         vulnerability.setComponents(components);
         qm.createVulnerability(vulnerability, false);
-        qm.makeAnalysis(component, vulnerability, AnalysisState.NOT_AFFECTED, AnalysisJustification.CODE_NOT_REACHABLE, AnalysisResponse.WILL_NOT_FIX, "Analysis details here", true);
+        qm.makeAnalysis(component, vulnerability, AnalysisState.NOT_AFFECTED, AnalysisJustification.CODE_NOT_REACHABLE, AnalysisResponse.WILL_NOT_FIX, "Analysis details here", true, "");
         AnalysisRequest request = new AnalysisRequest(project.getUuid().toString(), component.getUuid().toString(),
-                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, AnalysisJustification.CODE_NOT_REACHABLE, AnalysisResponse.WILL_NOT_FIX, "Analysis details here", "Not an issue", true);
+                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, AnalysisJustification.CODE_NOT_REACHABLE, AnalysisResponse.WILL_NOT_FIX, "Analysis details here", "Not an issue", true, "");
         Response response = target(V1_ANALYSIS)
                 .request()
                 .header(X_API_KEY, apiKey)
@@ -226,9 +226,9 @@ public class AnalysisResourceTest extends ResourceTest {
         vulnerability.setSeverity(Severity.HIGH);
         vulnerability.setComponents(components);
         qm.createVulnerability(vulnerability, false);
-        qm.makeAnalysis(component, vulnerability, AnalysisState.IN_TRIAGE, AnalysisJustification.CODE_NOT_REACHABLE, AnalysisResponse.WILL_NOT_FIX, "Analysis details here", false);
+        qm.makeAnalysis(component, vulnerability, AnalysisState.IN_TRIAGE, AnalysisJustification.CODE_NOT_REACHABLE, AnalysisResponse.WILL_NOT_FIX, "Analysis details here", false, "");
         AnalysisRequest request = new AnalysisRequest(project.getUuid().toString(), component.getUuid().toString(),
-                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, AnalysisJustification.PROTECTED_BY_MITIGATING_CONTROL, AnalysisResponse.UPDATE, "Updated analysis details here", "Not an issue", true);
+                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, AnalysisJustification.PROTECTED_BY_MITIGATING_CONTROL, AnalysisResponse.UPDATE, "Updated analysis details here", "Not an issue", true, "");
         Response response = target(V1_ANALYSIS)
                 .request()
                 .header(X_API_KEY, apiKey)
@@ -278,9 +278,9 @@ public class AnalysisResourceTest extends ResourceTest {
         vulnerability.setSeverity(Severity.HIGH);
         vulnerability.setComponents(components);
         qm.createVulnerability(vulnerability, false);
-        qm.makeAnalysis(component, vulnerability, AnalysisState.IN_TRIAGE, null, null, null, false);
+        qm.makeAnalysis(component, vulnerability, AnalysisState.IN_TRIAGE, null, null, null, false, "");
         AnalysisRequest request = new AnalysisRequest(project.getUuid().toString(), component.getUuid().toString(),
-                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, AnalysisJustification.PROTECTED_BY_MITIGATING_CONTROL, AnalysisResponse.UPDATE, "Updated analysis details here", "Not an issue", true);
+                vulnerability.getUuid().toString(), AnalysisState.NOT_AFFECTED, AnalysisJustification.PROTECTED_BY_MITIGATING_CONTROL, AnalysisResponse.UPDATE, "Updated analysis details here", "Not an issue", true, "");
         Response response = target(V1_ANALYSIS)
                 .request()
                 .header(X_API_KEY, apiKey)

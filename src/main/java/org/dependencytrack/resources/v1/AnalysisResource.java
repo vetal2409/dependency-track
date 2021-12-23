@@ -133,7 +133,8 @@ public class AnalysisResource extends AlpineResource {
                 validator.validateProperty(request, "analysisJustification"),
                 validator.validateProperty(request, "analysisResponse"),
                 validator.validateProperty(request, "analysisDetails"),
-                validator.validateProperty(request, "comment")
+                validator.validateProperty(request, "comment"),
+                validator.validateProperty(request, "recommendation")
         );
         try (QueryManager qm = new QueryManager()) {
             final Project project = qm.getObjectByUuid(Project.class, request.getProject());
@@ -185,9 +186,9 @@ public class AnalysisResource extends AlpineResource {
                     final String message = (request.isSuppressed()) ? "Suppressed" : "Unsuppressed";
                     qm.makeAnalysisComment(analysis, message, commenter);
                 }
-                analysis = qm.makeAnalysis(component, vulnerability, request.getAnalysisState(), request.getAnalysisJustification(), request.getAnalysisResponse(), request.getAnalysisDetails(), request.isSuppressed());
+                analysis = qm.makeAnalysis(component, vulnerability, request.getAnalysisState(), request.getAnalysisJustification(), request.getAnalysisResponse(), request.getAnalysisDetails(), request.isSuppressed(), request.getRecommendation());
             } else {
-                analysis = qm.makeAnalysis(component, vulnerability, request.getAnalysisState(), request.getAnalysisJustification(), request.getAnalysisResponse(), request.getAnalysisDetails(), request.isSuppressed());
+                analysis = qm.makeAnalysis(component, vulnerability, request.getAnalysisState(), request.getAnalysisJustification(), request.getAnalysisResponse(), request.getAnalysisDetails(), request.isSuppressed(), request.getRecommendation());
                 analysisStateChange = true; // this is a new analysis - so set to true because it was previously null
                 if (AnalysisState.NOT_SET != request.getAnalysisState()) {
                     qm.makeAnalysisComment(analysis, String.format("Analysis: %s → %s", AnalysisState.NOT_SET, request.getAnalysisState()), commenter);
