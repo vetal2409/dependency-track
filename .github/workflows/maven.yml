@@ -1,7 +1,7 @@
 name: CI Build
 
 on:
-  push:
+#  push:
   pull_request:
   workflow_dispatch:
     inputs:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DOCKER_APISERVER_REPO: stylet/dtrack_api
+      DOCKER_APISERVER_REPO: "vetal2409/dtrack_api"
 #      DOCKER_APISERVER_REPO: dependencytrack/apiserver
 #      DOCKER_BUNDLED_REPO: dependencytrack/bundled
 #      DOCKER_TAG: snapshot
@@ -47,20 +47,20 @@ jobs:
         mvn clean
         mvn package -Dmaven.test.skip=true -P clean-exclude-wars -P enhance -P embedded-jetty -Dlogback.configuration.file=src/main/docker/logback.xml
         mvn clean -P clean-exclude-wars
-        mvn package -Dmaven.test.skip=true -P enhance -P embedded-jetty -P bundle-ui -Dlogback.configuration.file=src/main/docker/logback.xml
-        mvn clean -P clean-exclude-wars
+#        mvn package -Dmaven.test.skip=true -P enhance -P embedded-jetty -P bundle-ui -Dlogback.configuration.file=src/main/docker/logback.xml
+#        mvn clean -P clean-exclude-wars
 
     - name: Execute unit tests
       if: github.event.inputs.skipTests != 'true'
       run: mvn test -P enhance
 
-    - name: Publish test coverage
-      if: github.ref == 'refs/heads/master' && github.event.inputs.skipTests != 'true'
-      uses: codacy/codacy-coverage-reporter-action@v1
-      with:
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        language: Java
-        coverage-reports: target/jacoco-ut/jacoco.xml
+#    - name: Publish test coverage
+#      if: github.ref == 'refs/heads/master' && github.event.inputs.skipTests != 'true'
+#      uses: codacy/codacy-coverage-reporter-action@v1
+#      with:
+#        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+#        language: Java
+#        coverage-reports: target/jacoco-ut/jacoco.xml
 
     - name: Logging into Docker Hub
       if: github.ref == 'refs/heads/master'
@@ -70,39 +70,39 @@ jobs:
       run: docker login -u "${HUB_USERNAME}" -p "${HUB_ACCESSS_TOKEN}"
 
     - name: Building Docker API Server container
-#      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master'
       run: |-
         docker build -f src/main/docker/Dockerfile \
           --build-arg COMMIT_SHA=${GITHUB_SHA} \
           --build-arg APP_VERSION=${DOCKER_TAG} \
           --build-arg WAR_FILENAME=dependency-track-apiserver.jar \
-          -t ${DOCKER_APISERVER_REPO}:${DOCKER_TAG} \
+          -t ${DOCKER_APISERVER_REPO}:${GITHUB_SHA:0:7} \
           --platform linux/amd64,linux/arm64 \
           --push .
 
-    - name: Building Docker bundled container
-      if: github.ref == 'refs/heads/master'
-      run: |-
-        docker build -f src/main/docker/Dockerfile \
-          --build-arg COMMIT_SHA=${GITHUB_SHA} \
-          --build-arg APP_VERSION=${DOCKER_TAG} \
-          --build-arg WAR_FILENAME=dependency-track-bundled.jar \
-          -t ${DOCKER_BUNDLED_REPO}:${DOCKER_TAG} \
-          --platform linux/amd64,linux/arm64 \
-          --push .
+#    - name: Building Docker bundled container
+#      if: github.ref == 'refs/heads/master'
+#      run: |-
+#        docker build -f src/main/docker/Dockerfile \
+#          --build-arg COMMIT_SHA=${GITHUB_SHA} \
+#          --build-arg APP_VERSION=${DOCKER_TAG} \
+#          --build-arg WAR_FILENAME=dependency-track-bundled.jar \
+#          -t ${DOCKER_BUNDLED_REPO}:${DOCKER_TAG} \
+#          --platform linux/amd64,linux/arm64 \
+#          --push .
 
-    - name: Run Trivy vulnerability scanner
-      if: github.ref == 'refs/heads/master'
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: dependencytrack/apiserver:snapshot
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        ignore-unfixed: true
-        vuln-type: 'os'
+#    - name: Run Trivy vulnerability scanner
+#      if: github.ref == 'refs/heads/master'
+#      uses: aquasecurity/trivy-action@master
+#      with:
+#        image-ref: dependencytrack/apiserver:snapshot
+#        format: 'sarif'
+#        output: 'trivy-results.sarif'
+#        ignore-unfixed: true
+#        vuln-type: 'os'
 
-    - name: Upload Trivy scan results to GitHub Security tab
-      if: github.ref == 'refs/heads/master'
-      uses: github/codeql-action/upload-sarif@v1
-      with:
-        sarif_file: 'trivy-results.sarif'
+#    - name: Upload Trivy scan results to GitHub Security tab
+#      if: github.ref == 'refs/heads/master'
+#      uses: github/codeql-action/upload-sarif@v1
+#      with:
+#        sarif_file: 'trivy-results.sarif'
