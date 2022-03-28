@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DOCKER_APISERVER_REPO: stylet/dtrack_api
+      DOCKER_APISERVER_REPO: vetal2409/dtrack_api
 #      DOCKER_APISERVER_REPO: dependencytrack/apiserver
 #      DOCKER_BUNDLED_REPO: dependencytrack/bundled
 #      DOCKER_TAG: snapshot
